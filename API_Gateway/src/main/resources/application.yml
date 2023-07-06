@@ -1,0 +1,19 @@
+spring:
+   cloud:
+      gateway:
+         routes:
+         - id: User-Service
+           uri: lb://User-Service
+           predicates:
+           - Path= /user/**
+           
+    #okta specific configurations       
+okta:
+  oauth2:
+    issuer: https://dev-61074783.okta.com/oauth2/default
+    audience: api://default
+    client-id: 0oaa8jl4tt0r3zr8P5d7
+    client-secret: yIOQ4kOd-PW6rZVY50nMD7Rz5OVvPE8lArrg-yD_
+    scopes: openid, profile, email, offline_access
+           
+ 
