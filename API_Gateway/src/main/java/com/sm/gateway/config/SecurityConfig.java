@@ -3,7 +3,9 @@ package com.sm.gateway.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration
@@ -16,14 +18,14 @@ public class SecurityConfig {
 		httpSecurity
 		.cors()
 		.and()
-		.authorizeExchange()
-		.anyExchange()
-		.authenticated()
-		.and()
-		.oauth2Client()
-		.and()
-		.oauth2ResourceServer()
-		.jwt();
+		.csrf().disable()
+		.authorizeExchange(exchanges -> exchanges
+        		.pathMatchers("/user/signup","/user/signin")
+        		.permitAll()
+        		.anyExchange()
+        		.authenticated()
+        		);
+		
 		
 		return httpSecurity.build();
 	}
