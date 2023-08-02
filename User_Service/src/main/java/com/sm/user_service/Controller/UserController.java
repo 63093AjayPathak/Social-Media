@@ -31,7 +31,8 @@ public class UserController {
 	@PostMapping("/signup")
 	public ResponseEntity<?> createNewUser(@RequestBody UserDTO user){
 		
-		return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("new user created",userService.signUp(user)));
+//		return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("new user created",userService.signUp(user)));
+		return ResponseEntity.status(HttpStatus.CREATED).body(new String("New User Created"));
 		
 	}
 	
