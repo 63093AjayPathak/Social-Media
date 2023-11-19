@@ -39,12 +39,9 @@ public class User{
 	@Email(message="Invalid email format")
 	private String email;
 	
-	@Column(length=100, nullable=false)
+	@Column(length=250, nullable=false)
 	@NotBlank(message="Password must be supplied")
 	private String password;
-	
-//	@Column(nullable=false)
-//	private String role;
 	
 }
 

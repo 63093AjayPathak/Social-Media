@@ -1,0 +1,12 @@
+server:
+   port: 9093
+
+spring:
+   application:
+      name: Config-Server
+   cloud:
+      config:
+         server:
+           git:
+             uri: https://github.com/63093AjayPathak/micro-config-server.git
+             clone-on-start: true
