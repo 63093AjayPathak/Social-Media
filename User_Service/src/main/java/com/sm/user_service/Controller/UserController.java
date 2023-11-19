@@ -30,22 +30,10 @@ public class UserController {
 
 	@PostMapping("/signup")
 	public ResponseEntity<?> createNewUser(@RequestBody UserDTO user){
-		
+//		this will be called by api gateway when we have successfully saved a new user in mysql db , then we'll create node in neo4j for that user
 //		return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("new user created",userService.signUp(user)));
 		return ResponseEntity.status(HttpStatus.CREATED).body(new String("New User Created"));
 		
 	}
 	
-	@PostMapping("/signin")
-	public ResponseEntity<?> logIn(@RequestBody UserDTO user){
-		
-		User us=userService.signIn(user);
-		
-		if(user!=null) {
-			return ResponseEntity.status(HttpStatus.OK).body(us);
-		}
-		else {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new String("User with given email and password not found"));
-		}
-	}
 }

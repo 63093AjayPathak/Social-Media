@@ -1,0 +1,8 @@
+spring:
+   cloud:
+      gateway:
+         routes:
+         - id: User-Service
+           uri: lb://User-Service
+           predicates:
+           - Path= /user/**
