@@ -1,9 +1,11 @@
 package com.sm.user_service.node;
 
+import java.util.Date;
 import java.util.Set;
 
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 
@@ -25,8 +27,20 @@ public class User {
 	
 	@Id
 	private int id;
-	
 	private String email;
+    private String name;
+	private String about;
+	private Date dateOfBirth;
+	private Date accountCreatedOn;
+//	remove isStudent and isWorkingProessional properties
+	private boolean isStudent;
+	private boolean isWorkingProfessional;
+	
+	private String country;
+	private String city;
+	private String hobbies;
+	@Property(name="profile_picture")
+	private String profilePicUrl;
 	
 	
 //	for relationship with friends
