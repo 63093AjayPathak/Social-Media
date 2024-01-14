@@ -3,6 +3,8 @@ package com.sm.user_service.service;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.sm.user_service.DTO.FriendListDTO;
 import com.sm.user_service.DTO.UserDTO;
 import com.sm.user_service.DTO.UserFriendStatusDTO;
@@ -50,4 +52,8 @@ public interface UserService {
 	public List<FriendListDTO> searchByName(String name);
 	
 //	add a method to update profile pic and call post-service API to create a new post for updation of profile picture
+	public String updateDisplayPicture(MultipartFile file, int user_id);
+	
+	public String getProfleURL();
+	
 }

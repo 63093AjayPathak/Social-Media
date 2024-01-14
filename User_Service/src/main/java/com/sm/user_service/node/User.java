@@ -31,16 +31,12 @@ public class User {
     private String name;
 	private String about;
 	private Date dateOfBirth;
-	private Date accountCreatedOn;
-//	remove isStudent and isWorkingProessional properties
-	private boolean isStudent;
-	private boolean isWorkingProfessional;
-	
+	private Date accountCreatedOn;	
 	private String country;
 	private String city;
 	private String hobbies;
 	@Property(name="profile_picture")
-	private String profilePicUrl;
+	private int profilePicUrl;
 	
 	
 //	for relationship with friends

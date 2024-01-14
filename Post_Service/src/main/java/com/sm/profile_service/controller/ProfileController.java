@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sm.profile_service.document.Post;
 import com.sm.profile_service.dto.LikeRequest;
+import com.sm.profile_service.dto.PostResponse;
 import com.sm.profile_service.service.PostService;
 
 @RestController
@@ -24,6 +26,7 @@ public class ProfileController {
 
 	@Autowired
 	private PostService postService;
+	
 
 	@GetMapping("/")
 	public ResponseEntity<?> hello() {
@@ -32,8 +35,19 @@ public class ProfileController {
 	}
 
 	@PostMapping("/savePost")
-	public ResponseEntity<?> savePost(@RequestBody Post post) {
-		return ResponseEntity.status(HttpStatus.CREATED).body(postService.savePost(post));
+	public ResponseEntity<String> savePost(@RequestParam("file") MultipartFile file, @RequestParam("userId") int id, 
+			@RequestParam("isPublic") boolean isPublic, @RequestParam("caption") String caption) {
+		
+		Post post= new Post();
+		post.setCaption(caption);
+		post.setUserId(id);
+		post.setPublic(isPublic);
+		
+		postService.savePost(post,file);
+		
+		String message="Post created";
+		
+		return ResponseEntity.status(HttpStatus.CREATED).body(message);
 	}
 
 	@DeleteMapping("/delete/{id}")
@@ -51,17 +65,21 @@ public class ProfileController {
 
 //	sort this data ( on the basis of postedOn datetime) in frontend
 	@GetMapping("/user_profile")
-	public ResponseEntity<List<Post>> getUserprofile(@RequestParam int user_id, @RequestParam int requester_id) {
-		List<Post> profile = postService.userProfile(user_id, requester_id);
-		return ResponseEntity.status(HttpStatus.OK).body(profile);
+	public ResponseEntity<PostResponse> getUserprofile(@RequestParam int user_id, @RequestParam int requester_id) {
+		PostResponse postResp= new PostResponse();
+		postResp.getPosts().addAll(postService.userProfile(user_id, requester_id));
+		postResp.setUrl(postService.url());
+		return ResponseEntity.status(HttpStatus.OK).body(postResp);
 	}
 
 	
-//	sort this data ( on the basis of postedOn datetime) in frontend
+//	sort this data ( on the basis of postedOn datetime in frontend
 	@GetMapping("/user_feed")
-	public ResponseEntity<List<Post>> getUserFeed(@RequestParam int user_id) {
-		List<Post> feed = postService.userFeed(user_id);
-		return ResponseEntity.status(HttpStatus.OK).body(feed);
+	public ResponseEntity<PostResponse> getUserFeed(@RequestParam int user_id) {
+		PostResponse postResp= new PostResponse();
+		postResp.getPosts().addAll(postService.userFeed(user_id));
+		postResp.setUrl(postService.url());
+		return ResponseEntity.status(HttpStatus.OK).body(postResp);
 	}
 
 }

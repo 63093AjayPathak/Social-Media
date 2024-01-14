@@ -31,7 +31,8 @@ public class Post {
 	private boolean isPublic;
 	
 	private String caption;
-	private String mediaUrl;
+	
+	private int url;
 	
 	@Field("likes")
 	private Set<Like> likes;
@@ -41,7 +42,7 @@ public class Post {
 		this.likes=new HashSet<>();
 	}
 	
-	public Post(long id, int userId, LocalDateTime postedOn, boolean isPublic, String caption, String mediaUrl,
+	public Post(long id, int userId, LocalDateTime postedOn, boolean isPublic, String caption,int url,
 			Set<Like> likes) {
 		super();
 		this.id = id;
@@ -49,7 +50,7 @@ public class Post {
 		this.postedOn = postedOn;
 		this.isPublic = isPublic;
 		this.caption = caption;
-		this.mediaUrl = mediaUrl;
+		this.url=url;
 		
 		if(likes!=null)
 		this.likes = likes;
