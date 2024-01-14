@@ -6,8 +6,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sm.user_service.DTO.FriendListDTO;
 import com.sm.user_service.DTO.UserDTO;
@@ -15,6 +23,7 @@ import com.sm.user_service.DTO.UserFriendStatusDTO;
 import com.sm.user_service.exceptions.NoUserFound;
 import com.sm.user_service.node.User;
 import com.sm.user_service.repository.UserRepository;
+import com.sm.user_service.service.S3Service;
 import com.sm.user_service.service.UserService;
 
 
@@ -24,11 +33,25 @@ public class UserServiceImpl implements UserService {
 	
 	@Autowired
 	private UserRepository userRepo;
+	
+	@Autowired
+	private S3Service s3Service;
+	
+	@Autowired
+	RestTemplate restTemplate;
 
 	@Override
 	public String newUser(UserDTO userdto) {
 		
-		User user = userRepo.save(userdto.getUser());
+		Set<String> emails= userRepo.findAll().stream().map((user)-> user.getEmail()).collect(Collectors.toSet());
+		
+//		throw a custom exception
+		if(emails.contains(userdto.getUserEmail()))
+			throw new RuntimeException("User with given email already exists");
+		
+		User user =userdto.getUser();
+		user.setId(user.getEmail().hashCode());
+		userRepo.save(user);
 		return "New User Node Created";
 	}
 	
@@ -231,6 +254,23 @@ public class UserServiceImpl implements UserService {
 		return list.stream().
 				map((u)-> FriendListDTO.builder().id(u.getId()).user_name(u.getName()).build())
 				.collect(Collectors.toList());
+	}
+	
+	public String updateDisplayPicture(MultipartFile file, int user_id) {
+		User user=userRepo.findById(user_id).orElseThrow(()-> new NoUserFound(" User with gievn id couldn't be found"));
+		
+		if(user.getProfilePicUrl()!=0)
+			s3Service.deleteFile("Profile/"+user.getId()+"/"+user.getProfilePicUrl());
+		
+		String fileName=s3Service.saveFile(file, user_id);
+		user.setProfilePicUrl(fileName.hashCode());
+		userRepo.save(user);
+		
+		return "Profile Pic updated";
+	}
+	
+	public String getProfleURL() {
+		return s3Service.getUrl();
 	}
 
 }

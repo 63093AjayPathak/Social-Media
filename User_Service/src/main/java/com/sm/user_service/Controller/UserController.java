@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sm.user_service.DTO.ApiResponse;
 import com.sm.user_service.DTO.FriendListDTO;
@@ -36,9 +37,6 @@ public class UserController {
 	@PostMapping("/")
 	public ResponseEntity<ApiResponse> createnewUser(@RequestBody UserDTO userDto){
 		
-		if(userDto.getUserId()==0 || userDto.getUserEmail()==null || userDto.getUserEmail().trim()=="") {
-			return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(ApiResponse.builder().message("id or Email field is null").timeStamp(LocalDateTime.now()).build());
-		}
 		String message=userService.newUser(userDto);
 		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.builder().message(message).timeStamp(LocalDateTime.now()).build());
 	}
@@ -51,9 +49,16 @@ public class UserController {
 	
 //	search user with user_id
 	@GetMapping("/{id}")
-	public User getUser(@PathVariable int id) {		
+	public ResponseEntity<UserDTO> getUser(@PathVariable int id) {		
 //	whenever this call is made , make sure to make a API call (from UI) to get all posts for the specified user from Post-Service
-		return userService.getSpecificUser(id);
+		User user= userService.getSpecificUser(id);
+		
+		UserDTO dto=UserDTO.builder().name(user.getName()).about(user.getAbout()).dateOfBirth(user.getDateOfBirth())
+		.accountCreatedOn(user.getAccountCreatedOn()).userEmail(user.getEmail()).city(user.getCity())
+		.country(user.getCountry()).hobbies(user.getHobbies()).profilePicUrl(user.getProfilePicUrl())
+		.mainUrl(userService.getProfleURL()).build();
+		
+		return ResponseEntity.status(HttpStatus.OK).body(dto);
 	}
 	
 //	from here we are sending a DTO which has fields like isFriend, isRequestSent, isRequestReceived, self 
@@ -144,13 +149,17 @@ public class UserController {
 	}
 	
 //	method to change profile picture
+//	this method would be used to update the profile picture both when user tries to change profile picture as well as when he/she
+//	tries to remove the profile picture
+//	whenever we call this API we have to call Post-Service API to create a post from frotnend itself
 	@PatchMapping("/update_profile_picture")
-	public String updateProfilePicture() {
+	public ResponseEntity<String> updateProfilePicture(@RequestParam MultipartFile file, @RequestParam int user_id) {
 		
-		return null;
+		String message= userService.updateDisplayPicture(file, user_id);
+		return ResponseEntity.status(HttpStatus.CREATED).body(message);
 	}
 
-//	add an API fro editing user info
+//	add an API for editing user info
 	@PatchMapping("/update_info")
 	public ResponseEntity<String> updateInfo(@RequestBody UserDTO info){
 		
