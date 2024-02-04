@@ -6,7 +6,17 @@ spring:
            uri: lb://User-Service
            predicates:
            - Path= /user/**
+           filters:
+           - AuthenticationFilter
+           
          - id: Post-Service
            uri: lb://Post-Service
            predicates:
            - Path= /user_post/**
+           filters:
+           - AuthenticationFilter
+           
+         - id: Identity-Service
+           uri: lb://Identity-Service
+           predicates:
+           - Path= /auth/**
