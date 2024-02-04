@@ -49,7 +49,7 @@ public class S3ServiceImpl implements S3Service {
 		String fileName= file.getOriginalFilename()+Timestamp.valueOf(LocalDateTime.now()).toString();
 		try {
 			File convFile=convertToFile(file);
-			PutObjectResult putObjectResult=s3.putObject(bucket, "Post"+id+"/"+fileName.hashCode(), convFile);
+			PutObjectResult putObjectResult=s3.putObject(bucket, "Post/"+id+"/"+fileName.hashCode(), convFile);
 			
 			return fileName;
 		}

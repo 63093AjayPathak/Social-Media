@@ -1,6 +1,7 @@
 server:
    port: 9093
 
+#config server related configurations like github repo link
 spring:
    application:
       name: Config-Server

@@ -39,8 +39,7 @@ public class PostSeviceImpl implements PostService {
 	
 	private Set<Integer> getFriends(int user_id){
 //		call user-service and getFriends of current user which we have to convert to a Set<Integer> and then return it
-//		url: http://localhost:9092/user/getFriends/{id}
-		Set<LinkedHashMap> friends=restTemplate.getForObject("http://localhost:9092/user/getFriends/"+user_id, Set.class);
+		Set<LinkedHashMap> friends=restTemplate.getForObject("http://User-Service/user/getFriends/"+user_id, Set.class);
 		Set<Integer> result=new HashSet<>();
 		friends.stream().forEach((LinkedHashMap u)->result.add((Integer)u.get("id")));
 			

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,31 +36,18 @@ public class UserController {
 
 //	create new user node
 	@PostMapping("/")
-	public ResponseEntity<ApiResponse> createnewUser(@RequestBody UserDTO userDto){
+	public ResponseEntity<String> createnewUser(@RequestBody UserDTO userDto){
 		
 		String message=userService.newUser(userDto);
-		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.builder().message(message).timeStamp(LocalDateTime.now()).build());
+		return ResponseEntity.status(HttpStatus.CREATED).body(message);
 	}
 	
 //	below method is just for testing via postman
-	@GetMapping("/")
-	public List<User> getAllUsers(){	
-		return userService.findAllUsers();
-	}
+//	@GetMapping("/")
+//	public List<User> getAllUsers(){
+//		return userService.findAllUsers();
+//	}
 	
-//	search user with user_id
-	@GetMapping("/{id}")
-	public ResponseEntity<UserDTO> getUser(@PathVariable int id) {		
-//	whenever this call is made , make sure to make a API call (from UI) to get all posts for the specified user from Post-Service
-		User user= userService.getSpecificUser(id);
-		
-		UserDTO dto=UserDTO.builder().name(user.getName()).about(user.getAbout()).dateOfBirth(user.getDateOfBirth())
-		.accountCreatedOn(user.getAccountCreatedOn()).userEmail(user.getEmail()).city(user.getCity())
-		.country(user.getCountry()).hobbies(user.getHobbies()).profilePicUrl(user.getProfilePicUrl())
-		.mainUrl(userService.getProfleURL()).build();
-		
-		return ResponseEntity.status(HttpStatus.OK).body(dto);
-	}
 	
 //	from here we are sending a DTO which has fields like isFriend, isRequestSent, isRequestReceived, self 
 //	on the basis of these fields we will show the appropriate option on UI
@@ -67,10 +55,18 @@ public class UserController {
 //	if user is viewing his/her own profile then no such option is to be shown 
 //	but some other functionality is to be provided like editing post, deleting post, adding new post and so on
 //	where user interacts with it's own profile
-	@GetMapping("/get_friendship_details")
+	@GetMapping("/user_details")
 	public ResponseEntity<UserFriendStatusDTO> getFriendshipDetails(@RequestParam int user_id, @RequestParam int requested_id){
+		User user= userService.getSpecificUser(requested_id);
 		
-		return ResponseEntity.status(HttpStatus.OK).body(userService.getFriendshipstatus(user_id, requested_id));
+		UserDTO dto=UserDTO.builder().name(user.getName()).about(user.getAbout()).dateOfBirth(user.getDateOfBirth())
+				.accountCreatedOn(user.getAccountCreatedOn()).userEmail(user.getEmail()).city(user.getCity())
+				.country(user.getCountry()).hobbies(user.getHobbies()).profilePicUrl(user.getProfilePicUrl())
+				.mainUrl(userService.getProfleURL()+requested_id+"/").build();
+		
+		UserFriendStatusDTO friend=userService.getFriendshipstatus(user_id, requested_id);
+		friend.setUser(dto);
+		return ResponseEntity.status(HttpStatus.OK).body(friend);
 	}
 	
 //	API end for sending a friend req to specific user
@@ -91,8 +87,8 @@ public class UserController {
 		
 //		process of removing the REQUEST_SENT and REQUEST_RECEIVED , creating the relationship FRIENDS need to be done
 //		in same transaction but here we are doing them in separate transaction
-		userService.removeFriendRequest(sender,receiver );
 		String resp= userService.acceptRequest(sender,receiver);
+		userService.removeFriendRequest(sender,receiver );
 		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.builder().message(resp).timeStamp(LocalDateTime.now()).build());
 		
 	}

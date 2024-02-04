@@ -2,7 +2,7 @@ package com.sm.user_service.DTO;
 
 import java.util.Date;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sm.user_service.node.User;
 
 import lombok.AllArgsConstructor;
@@ -37,6 +37,7 @@ public class UserDTO {
 	
 	private String mainUrl;
 	
+	@JsonIgnore
 	public User getUser() {
 		return User.builder().email(userEmail).id(userId).name(name).about(about).dateOfBirth(dateOfBirth).accountCreatedOn(accountCreatedOn)
 				.country(country).city(city).hobbies(hobbies).profilePicUrl(profilePicUrl)

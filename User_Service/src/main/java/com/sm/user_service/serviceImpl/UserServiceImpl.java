@@ -1,10 +1,12 @@
 package com.sm.user_service.serviceImpl;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -42,15 +44,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public String newUser(UserDTO userdto) {
-		
-		Set<String> emails= userRepo.findAll().stream().map((user)-> user.getEmail()).collect(Collectors.toSet());
-		
-//		throw a custom exception
-		if(emails.contains(userdto.getUserEmail()))
-			throw new RuntimeException("User with given email already exists");
-		
 		User user =userdto.getUser();
-		user.setId(user.getEmail().hashCode());
+		user.setAccountCreatedOn(new Date(System.currentTimeMillis()));
 		userRepo.save(user);
 		return "New User Node Created";
 	}
@@ -115,6 +110,9 @@ public class UserServiceImpl implements UserService {
 		User send = userRepo.findById(sender).orElseThrow(() -> new NoUserFound("Sender not found"));
 		User receive = userRepo.findById(receiver).orElseThrow(() -> new NoUserFound("Sender not found"));
 		String resp = "Request sent";
+		
+		if(send.getRequests().contains(receive))
+			return "Request already received from user "+receive.getName()+" with email: "+receive.getEmail();
 
 		if (!send.getRequestSend().contains(receive)) {
 			send.getRequestSend().add(receive);
@@ -137,7 +135,10 @@ public class UserServiceImpl implements UserService {
 		String reply = "friend added";
 
 		User sender = userRepo.findById(accepter).orElseThrow(() -> new NoUserFound("Sender not found"));
-		User receiver = userRepo.findById(reqSender).orElseThrow(() -> new NoUserFound("Sender not found"));
+		User receiver = userRepo.findById(reqSender).orElseThrow(() -> new NoUserFound("Receiver not found"));
+		
+		if(!sender.getRequests().contains(receiver))
+			return "No Request received from "+receiver.getName()+" with email: "+receiver.getEmail();
 
 		if (!sender.getFriends().contains(receiver)) {
 
@@ -158,8 +159,8 @@ public class UserServiceImpl implements UserService {
 		
 		String response="Request removed";
 		
-		User sender = userRepo.findById(rejecter).orElseThrow(() -> new NoUserFound("Sender not found"));
-		User receiver = userRepo.findById(reqSender).orElseThrow(() -> new NoUserFound("Sender not found"));
+		User sender = userRepo.findById(rejecter).orElseThrow(() -> new NoUserFound("Rejecter not found"));
+		User receiver = userRepo.findById(reqSender).orElseThrow(() -> new NoUserFound("reqSender not found"));
 		
 			userRepo.deleteRequestRelatiotnship(receiver.getEmail(), sender.getEmail());
 			userRepo.deleteRequestSendRelationship(receiver.getEmail(), sender.getEmail());
@@ -237,7 +238,7 @@ public class UserServiceImpl implements UserService {
 		if(info.getCity()!=null)
 			user.setCity(info.getCity());
 		if(info.getCountry()!=null)
-			user.setCity(info.getCountry());
+			user.setCountry(info.getCountry());
 		if(info.getName()!=null)
 			user.setName(info.getName());
 		if(info.getHobbies()!=null)
@@ -262,8 +263,13 @@ public class UserServiceImpl implements UserService {
 		if(user.getProfilePicUrl()!=0)
 			s3Service.deleteFile("Profile/"+user.getId()+"/"+user.getProfilePicUrl());
 		
-		String fileName=s3Service.saveFile(file, user_id);
-		user.setProfilePicUrl(fileName.hashCode());
+		if(file!=null) {
+			String fileName=s3Service.saveFile(file, user_id);
+			user.setProfilePicUrl(fileName.hashCode());
+		}
+		else {
+			user.setProfilePicUrl(0);
+		}
 		userRepo.save(user);
 		
 		return "Profile Pic updated";

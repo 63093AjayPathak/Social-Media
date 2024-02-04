@@ -17,4 +17,5 @@ public class UserFriendStatusDTO {
 	private boolean isRequestSent;
 	private boolean isRequestReceived;
 	private boolean self;
+	private UserDTO user;
 }
