@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -75,7 +76,7 @@ public class AuthServiceImpl implements AuthService {
 	@Override
 	public String generateToken(String email, Date date) {
 		AuthUser user= userRepo.findByEmail(email).orElseThrow(()->new RuntimeException("No user found with email: "+email));
-		return jwtService.generateToken(user.getEmail(), date);
+		return jwtService.generateToken(user.getEmail(), date, user.getId());
 	}
 
 	@Override
@@ -84,26 +85,41 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	@Override
-	@Transactional
-	public String authorizeUser(String token) {
+	public String authorizeUser(String token, String co_relation_id) {
 		String email=this.validateToken(token);
 		AuthUser user= userRepo.findByEmail(email).orElseThrow(()->new RuntimeException("No user found with email: "+email));
 		user.setAuthorized(true);
 		userRepo.save(user);
 		
+		HttpHeaders headers= new HttpHeaders();
+		headers.add("X-Corelation-ID", co_relation_id);
+		headers.add(HttpHeaders.AUTHORIZATION, "Bearer "+this.generateToken(email, new Date(System.currentTimeMillis() +1000*60*60*24)));
+//		HttpEntity<String> entity = new HttpEntity<>(headers);
+		
 		Map<String, Object> body = new HashMap<>();
         body.put("userId", user.getId());
         body.put("userEmail", user.getEmail());
 
-        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body);
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
         // POST request to User-Service
-        ResponseEntity<String> resp = restTemplate.postForEntity("http://User-Service/user/", requestEntity, String.class);
-        
-        if(resp.getStatusCode().isSameCodeAs(HttpStatus.CREATED))
-        	return "User verified for email: "+user.getEmail();
-        else
-        	throw new RuntimeException("User cannot created be verified, try again later");
+        try {
+        	ResponseEntity<String> resp = restTemplate.postForEntity("http://Api-Gateway/user/", requestEntity, String.class);
+            
+            if(resp.getStatusCode().isSameCodeAs(HttpStatus.CREATED))
+            	return "User verified for email: "+user.getEmail();
+            else {
+            	user.setAuthorized(false);
+        		userRepo.save(user);
+            	throw new RuntimeException("User cannot created be verified, try again later");
+            }
+        }
+        catch(RuntimeException ex) {
+        	user.setAuthorized(false);
+    		userRepo.save(user);
+        	throw new RuntimeException(ex);
+        }
+        	
 		
 	}
 

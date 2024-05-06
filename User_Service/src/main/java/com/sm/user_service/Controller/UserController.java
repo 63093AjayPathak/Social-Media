@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,16 +36,15 @@ public class UserController {
 //	create new user node
 	@PostMapping("/")
 	public ResponseEntity<String> createnewUser(@RequestBody UserDTO userDto){
-		
 		String message=userService.newUser(userDto);
 		return ResponseEntity.status(HttpStatus.CREATED).body(message);
 	}
 	
 //	below method is just for testing via postman
-//	@GetMapping("/")
-//	public List<User> getAllUsers(){
-//		return userService.findAllUsers();
-//	}
+	@GetMapping("/")
+	public List<User> getAllUsers(){
+		return userService.findAllUsers();
+	}
 	
 	
 //	from here we are sending a DTO which has fields like isFriend, isRequestSent, isRequestReceived, self 
@@ -81,7 +79,6 @@ public class UserController {
 //	API end point for adding a friend
 	@PostMapping("/add_friend")
 	public ResponseEntity<ApiResponse> addFriend(@RequestBody UserDTO friends){
-		
 		int sender=friends.getSender();
 		int receiver=friends.getReceiver();
 		
@@ -98,7 +95,6 @@ public class UserController {
 //	2 use case when user who sent the request wants to delete it (user=receiver, other user=sender
 	@DeleteMapping("/delete_request")
 	public ResponseEntity<ApiResponse> deletRequest(@RequestBody UserDTO friends){
-		
 		int sender=friends.getSender();
 		int receiver=friends.getReceiver();
 		String message=userService.removeFriendRequest(sender,receiver );
@@ -116,7 +112,6 @@ public class UserController {
 //	API end point for sending all incoming friend requests as response
 	@GetMapping("/requests/{id}")
 	public ResponseEntity<Set<FriendListDTO>> getAllReceivedRequests(@PathVariable int id){
-		
 		Set<FriendListDTO> requests=userService.getFriendRequests(id);
 		return ResponseEntity.status(HttpStatus.FOUND).body(requests);
 	}
@@ -125,15 +120,13 @@ public class UserController {
 //	return the list of dto containing essential details only like id 
 	@GetMapping("/getFriends/{id}")
 	public ResponseEntity<Set<FriendListDTO>> getAllFirends(@PathVariable int id){
-		
 		Set<FriendListDTO> friends=userService.getFriends(id);
-		return ResponseEntity.status(HttpStatus.FOUND).body(friends);
+		return ResponseEntity.status(HttpStatus.OK).body(friends);
 	}
 	
 //	API end point for sending user's sent requests as response
 	@GetMapping("/sent_requests/{id}")
 	public ResponseEntity<Set<FriendListDTO>> getAllSentRequests(@PathVariable int id){
-		
 		Set<FriendListDTO> friendRequestsSent=userService.sentfriendsRequests(id);
 		return ResponseEntity.status(HttpStatus.FOUND).body(friendRequestsSent);
 	}
@@ -150,7 +143,6 @@ public class UserController {
 //	whenever we call this API we have to call Post-Service API to create a post from frotnend itself
 	@PatchMapping("/update_profile_picture")
 	public ResponseEntity<String> updateProfilePicture(@RequestParam MultipartFile file, @RequestParam int user_id) {
-		
 		String message= userService.updateDisplayPicture(file, user_id);
 		return ResponseEntity.status(HttpStatus.CREATED).body(message);
 	}
@@ -158,7 +150,6 @@ public class UserController {
 //	add an API for editing user info
 	@PatchMapping("/update_info")
 	public ResponseEntity<String> updateInfo(@RequestBody UserDTO info){
-		
 		String message=userService.editInfo(info);
 		return ResponseEntity.status(HttpStatus.OK).body(message);
 	}
@@ -166,7 +157,6 @@ public class UserController {
 //	add an api to search user by name
 	@GetMapping("/search")
 	public ResponseEntity<List<FriendListDTO>> searchByName(@RequestParam String name){
-		System.out.println(name);
 		return ResponseEntity.status(HttpStatus.OK).body(userService.searchByName(name.trim()));
 	}
 }

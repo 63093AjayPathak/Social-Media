@@ -15,7 +15,7 @@ public interface AuthService {
 	
 	public String sendEmail(String to, String subject, String mailBody);
 	
-	public String authorizeUser(String email);
+	public String authorizeUser(String email, String co_relation_id);
 	
 	public String changePassword(String password, String token);
 	

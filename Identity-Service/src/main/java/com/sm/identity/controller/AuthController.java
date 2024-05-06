@@ -2,6 +2,8 @@ package com.sm.identity.controller;
 
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -17,12 +19,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.common.net.HttpHeaders;
 import com.sm.identity.dto.AuthRequest;
 import com.sm.identity.entity.AuthUser;
 import com.sm.identity.service.AuthService;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
-@CrossOrigin
+//@CrossOrigin()
 @RequestMapping("/auth")
 public class AuthController {
 	
@@ -34,6 +40,8 @@ public class AuthController {
 	
 	@Autowired
 	private AuthenticationManager authenticationManager;
+	
+	private Logger logger = LoggerFactory.getLogger(AuthController.class);
 	
 	@PostMapping("/register")
 	public ResponseEntity<String> addNewUSer(@RequestBody AuthRequest user) {
@@ -66,9 +74,15 @@ public class AuthController {
 	}
 	
 	@GetMapping("/verify/{token}")
-	public ResponseEntity<String> verifyEmail(@PathVariable String token){
+	@CircuitBreaker(name="UserCircuitBreaker", fallbackMethod = "verifyAndCreateUserFallback")
+	public ResponseEntity<String> verifyEmail(@PathVariable String token, HttpServletRequest req){
 //		whenever we verify user we have to send request to User-Service to create new user
-		return ResponseEntity.status(HttpStatus.OK).body(authService.authorizeUser(token));
+		return ResponseEntity.status(HttpStatus.OK).body(authService.authorizeUser(token, req.getHeader("X-Corelation-ID")));
+	}
+	
+	public ResponseEntity<String> verifyAndCreateUserFallback(String token, HttpServletRequest req, Exception ex){
+		logger.info("{}", "Req with Correlation Id: "+req.getHeader("X-Corelation-ID")+" failed due to user service being down, Exception: "+ex.getMessage());
+		return ResponseEntity.status(HttpStatus.FAILED_DEPENDENCY).body("Unable to process request");
 	}
 	
 	@PostMapping("/change_password_link/{email}")

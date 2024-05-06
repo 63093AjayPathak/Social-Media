@@ -1,22 +1,44 @@
 spring:
+   redis:
+      host: localhost
+      port: 6379
    cloud:
-      gateway:
+      gateway: 
+         default-filters: 
+          - name: CorrelationFilter
          routes:
          - id: User-Service
            uri: lb://User-Service
            predicates:
-           - Path= /user/**
-           filters:
-           - AuthenticationFilter
-           
+             - Path= /user/**
+           filters: 
+           - name: AuthenticationFilter 
+           - name: RequestRateLimiter
+             args: 
+               key-resolver: '#{@keyResolver}'
+               redis-rate-limiter.replenishRate: 20
+               redis-rate-limiter.burstCapacity: 40
+                 
+                 
          - id: Post-Service
            uri: lb://Post-Service
            predicates:
            - Path= /user_post/**
            filters:
-           - AuthenticationFilter
+           - name:  AuthenticationFilter
+           - name: RequestRateLimiter
+             args: 
+               key-resolver: '#{@keyResolver}'
+               redis-rate-limiter.replenishRate: 10
+               redis-rate-limiter.burstCapacity: 20
            
          - id: Identity-Service
            uri: lb://Identity-Service
            predicates:
            - Path= /auth/**
+           filters:
+           - name: RequestRateLimiter
+             args: 
+               key-resolver: '#{@keyResolver}'
+               redis-rate-limiter.replenishRate: 10
+               redis-rate-limiter.burstCapacity: 20
