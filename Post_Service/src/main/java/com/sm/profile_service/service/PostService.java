@@ -12,11 +12,11 @@ public interface PostService {
 	
 	public String deletePost(long id);
 	
-	public String handleLike(long post_id, int user_id, String user_name);
+	public String handleLike(long post_id, int user_id, String user_name, String co_relation_id, String token);
 	
-	public List<Post> userProfile(int user_id, int requester_id);
+	public List<Post> userProfile(int user_id, int requester_id, String co_relation_id, String token);
 	
-	public List<Post> userFeed(int user_id);
+	public List<Post> userFeed(int user_id, String co_relation_id, String token);
 	
 	public String url();
 }

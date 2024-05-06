@@ -28,9 +28,10 @@ public class JwtService {
 		return claims.getSubject();
 	}
 	
-	public String generateToken(String email, Date date) {
+	public String generateToken(String email, Date date, int id) {
 //		set the custom details that we want to send with token like id
 		Map<String, Object> claims= new HashMap<>();
+		claims.put("user_id", id);
 		return createToken(claims, email, date);
 	}
 	

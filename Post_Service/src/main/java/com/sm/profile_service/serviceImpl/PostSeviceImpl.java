@@ -10,6 +10,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,9 +42,23 @@ public class PostSeviceImpl implements PostService {
 		return s3Service.getUrl();
 	}
 	
-	private Set<Integer> getFriends(int user_id){
+	private Set<Integer> getFriends(int user_id, String co_relation_id, String token){
 //		call user-service and getFriends of current user which we have to convert to a Set<Integer> and then return it
-		Set<LinkedHashMap> friends=restTemplate.getForObject("http://User-Service/user/getFriends/"+user_id, Set.class);
+		
+		HttpHeaders headers= new HttpHeaders();
+		headers.add("X-Corelation-ID", co_relation_id);
+		headers.add("Authorization", token);
+		HttpEntity<String> entity = new HttpEntity<>(headers);
+		
+		ResponseEntity<Set>response = restTemplate.exchange("http://Api-Gateway/user/getFriends/"+user_id,HttpMethod.GET, entity, Set.class);
+		
+//		restTemplate.getForObject("http://User-Service/user/getFriends/"+user_id, Set.class);
+		
+		if(response.getStatusCode()!=HttpStatus.OK) {
+			throw new RuntimeException("Dependecy service unavailable");
+		}
+		
+		Set<LinkedHashMap> friends=response.getBody();
 		Set<Integer> result=new HashSet<>();
 		friends.stream().forEach((LinkedHashMap u)->result.add((Integer)u.get("id")));
 			
@@ -47,8 +66,8 @@ public class PostSeviceImpl implements PostService {
 	}
 	
 //	check whether two people are friends or not
-	private boolean isFriend(int user_id, int requester_id) {
-	    Set<Integer> friends= this.getFriends(user_id);
+	private boolean isFriend(int user_id, int requester_id, String co_relation_id, String token) {
+	    Set<Integer> friends= this.getFriends(user_id, co_relation_id,token);
 	    if(friends.contains(requester_id))
 	    	return true;
 	    
@@ -85,13 +104,13 @@ public class PostSeviceImpl implements PostService {
 	}
 
 	@Override
-	public String handleLike(long post_id, int user_id, String user_name) {
+	public String handleLike(long post_id, int user_id, String user_name, String co_relation_id, String token) {
 		
 		Post post=postRepo.findById(post_id).orElseThrow(()-> new ContentNotFoundException("No Post found with id: "+post_id));
 		
 		
 //		if user who's liking/disliking the post is a friend of postowner then only perform liking/disliking
-		if(this.isFriend(post.getUserId(),user_id)) {
+		if(this.isFriend(post.getUserId(),user_id, co_relation_id, token)) {
 			Set<Like> likes=post.getLikes();
 			Like like=Like.builder().postId(post_id).userId(user_id).userName(user_name).likedAt(LocalDateTime.now()).build();
 			if(likes.contains(like)) {
@@ -110,7 +129,7 @@ public class PostSeviceImpl implements PostService {
 	}
 
 	@Override
-	public List<Post> userProfile(int user_id, int requester_id) {
+	public List<Post> userProfile(int user_id, int requester_id, String co_relation_id, String token) {
 		
 		List<Post> posts= postRepo.findByUserId(user_id);
 		
@@ -119,16 +138,16 @@ public class PostSeviceImpl implements PostService {
 			return posts;
 		
 //		2. user requests one of the friends' profile
-		if(this.isFriend(user_id,requester_id))
+		if(this.isFriend(user_id,requester_id, co_relation_id, token))
 			return posts;
 		else  //		3. user requests profile or non-friend user.
 		    return posts.stream().filter((p)-> p.isPublic()).collect(Collectors.toList());
 	}
 
 	@Override
-	public List<Post> userFeed(int user_id) {
+	public List<Post> userFeed(int user_id, String co_relation_id, String token) {
 		// TODO Auto-generated method stub
-		Set<Integer> friends=this.getFriends(user_id);
+		Set<Integer> friends=this.getFriends(user_id, co_relation_id, token);
 		
 		List<Post> feed=new ArrayList<>();
 		for(int i:friends) {

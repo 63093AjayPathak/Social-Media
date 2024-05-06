@@ -3,10 +3,9 @@ package com.sm.apigateway.filter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 
 import com.sm.apigateway.exception.UnAuthorizedAccessException;
@@ -29,8 +28,8 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		// TODO Auto-generated method stub
-		return ((exchange,chain)->{
+		
+		return new OrderedGatewayFilter ((exchange,chain)->{
 			if(validator.isSecured.test(exchange.getRequest())) {
 //				header contains token or not
 				if(!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
@@ -49,7 +48,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 				}
 			}
 			return chain.filter(exchange);
-		});
+		},1);
 	}
 	
 	public static class Config {

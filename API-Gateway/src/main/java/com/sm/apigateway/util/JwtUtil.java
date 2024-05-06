@@ -19,6 +19,7 @@ public class JwtUtil {
 
     public void validateToken(final String token) {
         Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token);
+//        validate user id in token payload with owner_id coming in request header
     }
 
 

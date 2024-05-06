@@ -7,7 +7,6 @@ import com.sm.profile_service.document.Post;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
