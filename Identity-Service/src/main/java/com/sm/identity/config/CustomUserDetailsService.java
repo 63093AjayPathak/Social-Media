@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.sm.identity.entity.AuthUser;
 import com.sm.identity.repository.AuthUserRepository;
+import com.sm.identity.exception_handler.UserNotFoundException;
 
 @Component
 public class CustomUserDetailsService implements UserDetailsService {
@@ -21,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		Optional<AuthUser> user=userRepo.findByEmail(username);
 		
-		return user.map(CustomUserDetails::new).orElseThrow(()-> new RuntimeException("No user found with email: "+username));
+		return user.map(CustomUserDetails::new).orElseThrow(() -> new UserNotFoundException("No user found with email: " + username));
 	}
 
 }
